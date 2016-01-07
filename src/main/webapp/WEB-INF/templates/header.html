@@ -1,0 +1,18 @@
+<!DOCTYPE html SYSTEM "http://www.thymeleaf.org/dtd/xhtml1-strict-thymeleaf-4.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:th="http://www.thymeleaf.org">
+<body>
+	<header th:fragment="logo">
+		<p><img src="../../images/logo.png" th:src="@{/images/logo.png}" th:alt-title="#{logo}"/></p>
+	</header>
+	<header th:fragment="logoText">
+		<p>Thymeleaf Logo</p>
+	</header>
+	<div id="logo">
+		<p>Thymeleaf Logo (no th:fragment)</p>
+	</div>
+	<div th:fragment="frag-with-assert(onevar, twovar)" th:assert="${onevar}, ${#strings.equals(twovar, 'Leaf')}">
+		<p th:text="|onevar = ${onevar}, twovar = ${twovar}|">Fragment with assert</p>
+	</div>
+</body>
+</html>
