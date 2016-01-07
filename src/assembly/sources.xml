@@ -11,22 +11,21 @@
   
   <fileSets>
     <fileSet>
-      <directory>${basedir}/src/</directory>
+      <directory>${project.basedir}/src/</directory>
       <outputDirectory>/src/</outputDirectory>
       <includes>
         <include>**/*</include>
       </includes>
     </fileSet>
     <fileSet>
-      <directory>${basedir}/</directory>
+      <directory>${project.basedir}/</directory>
       <outputDirectory>/</outputDirectory>
       <includes>
-        <include>CONTRIBUTING.markdown</include>
-        <include>LICENSE.txt</include>
-        <include>README.txt</include>
         <include>BUILD.txt</include>
+        <include>LICENSE.txt</include>
         <include>NOTICE.txt</include>
         <include>pom.xml</include>
+        <include>README.md</include>
       </includes>
     </fileSet>
   </fileSets>
