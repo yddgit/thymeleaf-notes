@@ -1,0 +1,931 @@
+<!DOCTYPE html SYSTEM "http://www.thymeleaf.org/dtd/xhtml1-strict-thymeleaf-4.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	  xmlns:th="http://www.thymeleaf.org"><!--/* 声明Thymeleaf的命名空间 */-->
+<head>
+	<title>Thymeleaf Notes</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<link rel="stylesheet" type="text/css" media="all" href="../../css/style.css" th:href="@{/css/style.css}" />
+</head>
+<body>
+	<div>
+		<h1>Thymeleaf Notes</h1>
+	</div>
+	<ul>
+		<li><p>Message: <code>#{...}</code></p></li>
+		<li><p>变量: <code>${...}/*{...}</code></p></li>
+		<li><p>URL: <code>@{...}</code></p></li>
+	</ul>
+	<h2>基本表达式语法</h2>
+	<ol>
+		<li>
+			<p>简单的文本显示</p>
+			<ul>
+				<li>
+					<p>直接写文本，<code>th:text</code>的值会替换对应标签内的文本</p>
+					<p th:text="'Hello Thymeleaf'"></p>
+				</li>
+				<li>
+					<p>从properties文件中读取key为<code>hello</code>的文本，主要用于国际化</p>
+					<p th:text="#{hello.msg}"></p>
+				</li>
+				<li>
+					<p>显示当前模板名称</p>
+					<p th:text="${execInfo.templateName}"></p>
+				</li>
+				<li>
+					<p>显示当前时间</p>
+					<p th:text="${#calendars.format(execInfo.now, 'yyyy-MM-dd HH:mm:ss.SSSZ')}"></p>
+				</li>
+				<li>
+					<p>如果文本中含有XHTML的标签，<code>th:text</code>默认会将其转义，此时可以使用<code>th:utext</code></p>
+					<p th:utext="#{text.uescape}"></p>
+				</li>
+				<li>
+					<p>显示Context中的变量today (<code>today</code> variable is defined in IndexController)</p>
+					<p>Today is: <span th:text="${#calendars.format(today, 'yyyy-MM-dd')}"></span></p>
+				</li>
+			</ul>
+		</li>
+		<li>
+			<p>Message读取</p>
+			<ul>
+				<li>
+					<p>使用<code>#{...}</code>读取Message，同时Message中可以包含参数</p>
+					<p th:text="#{hello.welcome(${session.user.name})}"></p>
+					<p th:text="#{${welcomeMsgKey}(${session.user.name})}"></p>
+				</li>
+			</ul>
+		</li>
+		<li>
+			<p>变量（基于OGNL语法）</p>
+			<ul>
+				<li>
+					<p>使用<code>${...}</code>读取变量</p>
+					<p>使用<code>.</code>访问属性<code>session.user.name</code></p>
+					<p>User name in session is: <span th:text="${session.user.name}"></span></p>
+				</li>
+				<li>
+					<p>也可以使用<code>[]</code>访问属性</p>
+					<p>User name in session is: <span th:text="${session['user']['name']}"></span></p>
+				</li>
+				<li>
+					<p>如果对象是一个Map，那可以直接<code>.key</code>或<code>['key']</code>来获取key对应的value</p>
+					<p>User name is: <span th:text="${userMap.name}"></span>, age is <span th:text="${userMap['age']}"></span></p>
+				</li>
+				<li>
+					<p>数组元素可以直接通过<code>[]</code>来访问</p>
+					<p>User[0] name is <span th:text="${users[0].name}"></span></p>
+				</li>
+				<li>
+					<p>可以在表达式中调用对象的方法，也可以传递参数</p>
+					<p>User[1] name is <span th:text="${users[1].createCompleteName()}"></span></p>
+					<p>User[2] name is <span th:text="${users[2].createCompleteNameWithSeparator('-')}"></span></p>
+				</li>
+				<li>
+					<p>Thymeleaf预置的全局可访问的变量：</p>
+					<p th:text="${'Locale is: ' + #locale.language + '_' + #locale.country}"></p>
+					<ul>
+						<!-- 完整内容参考官方文档usingthymeleaf.pdf的附录A: Expression Basic Objects -->
+						<li><code>#ctx</code>: the context object.</li>
+						<li><code>#vars</code>: the context variables .</li>
+						<li><code>#locale</code>: the context locale.</li>
+						<li><code>#httpServletRequest</code>: (only in Web Contexts ) the HttpServletRequest object.</li>
+						<li><code>#httpSession</code>: (only in Web Contexts ) the HttpSession object.</li>
+						<li><code>#themes</code>: 如果使用spring则可以使用 spring:theme JSP标签</li>
+						<li><code>@beanName</code>: 在spring环境中可通过@来引用beans并可调用其方法</li>
+					</ul>
+				</li>
+				<li>
+					<p>Thymeleaf预置的全局可访问的工具变量：</p>
+					<p th:text="${'userMap contains \'name\' key? ' + #maps.containsKey(userMap, 'name')}"></p>
+					<ul>
+						<!-- 完整内容参考官方文档usingthymeleaf.pdf的附录B: Expression Utility Objects -->
+						<li><code>#dates</code>: 日期操作，对java.util.Date类型的对象操作，如formatting , component extraction等.</li>
+						<li><code>#calendars</code>: 日期操作，与#dates类似，但是对java.util.Calendar类型的对象操作.</li>
+						<li><code>#numbers</code>: 格式化数字值类型的数据.</li>
+						<li><code>#strings</code>: 字符串操作， 如contains, startsWith, prepending/appending等.</li>
+						<li><code>#objects</code>: 通常的对象操作.</li>
+						<li><code>#bools</code>: 布尔值的操作.</li>
+						<li><code>#arrays</code>: 数据操作.</li>
+						<li><code>#lists</code>: List操作.</li>
+						<li><code>#sets</code>: Set操作.</li>
+						<li><code>#maps</code>: Map操作.</li>
+						<li><code>#aggregates</code>: 对数组或集合类数据进行聚合统计，如求和或取平均值.
+							如： <span th:text="${#aggregates.avg(users.{age})}"></span>，
+							<span th:text="${#aggregates.sum(users.{age * 10})}"></span>
+						</li>
+						<li><code>#messages</code>: 外部message操作，通常应该写在<code>#{...}</code>里.</li>
+						<li><code>#ids</code>: 迭代变量时的辅助操作</li>
+					</ul>
+				</li>
+			</ul>
+		</li>
+		<li>
+			<p><code>*</code>号表达式</p>
+			<ul>
+				<li>
+					<p><code>*{...}</code>表达式只能访问局部变量，<code>th:object</code>选中一个对象之后，在对应的子标签结构里就可以使用*号表达式来访问这个对象的属性了</p>
+					<p><code>*{...}</code>和<code>${...}</code>可以混用，若没有<code>th:object</code>选中的对象，则两者作用相同。在选中对象子标签里可以使用<code>#object</code>来访问选中的对象</p>
+					<div th:object="${session.user}">
+						<p>First Name: <span th:text="*{firstName}"></span>.</p>
+						<p>Last Name: <span th:text="${session.user.lastName}"></span>.</p>
+						<p>Nationality: <span th:text="${#object.nationality}"></span>.</p>
+					</div>
+					<p><code>*{...}</code>表达式可以嵌套，多次应用</p>
+					<div th:object="${session}">
+						<p th:object="*{user}">
+							<span th:text="*{name}"></span>
+						</p>
+					</div>
+				</li>
+			</ul>
+		</li>
+		<li>
+			<p>URL路径</p>
+			<ul>
+				<li>
+					<p>使用<code>th:href</code>指定URL</p>
+					<p><a href="details.html" th:href="@{http://localhost:8080/thymeleaf-notes/order/details(orderId=${orderId})}">view1</a></p>
+					<p><a href="details.html" th:href="@{/order/details(orderId=${orderId})}">view2</a></p>
+					<p><a href="details.html" th:href="@{order/details(orderId=${orderId})}">view3</a></p>
+					<p><a href="details.html" th:href="@{/order/{orderId}/details(orderId=${orderId})}">view4</a></p>
+					<p><code>th:href</code>只修改链接的href属性，并不修改链接文本</p>
+					<p>链接参数也可以用表达式来传递，thymeleaf会自动进行URL-encode</p>
+					<p>链接参数的语法：<code>(param1=value1,param2=value2,...)</code>，也可以在链接中指定参数</p>
+					<p>所有以<code>/</code>开头的相对路径，都会自动在路径前面拼上当前工程的ContextPath</p>
+				</li>
+			</ul>
+		</li>
+		<li>
+			<p>文本表示</p>
+			<ul>
+				<li>
+					<p>普通文本</p>
+					<p>Now you are looking at a <span th:text="'working web application'"></span>.</p>
+				</li>
+				<li>
+					<p>数字的显示</p>
+					<p>The year is <span th:text="2016"></span>.</p>
+					<p>In two years, it will be <span th:text="2016 + 2"></span>.</p>
+				</li>
+				<li>
+					<p>布尔类型的显示</p>
+					<p th:if="${isAdmin == true}">This user is admin. Resolved by OGNL/SpringEL</p>
+					<p th:if="${isAdmin} == true">This user is admin. Resolved by thymeleaf</p>
+				</li>
+				<li>
+					<p>null值</p>
+					<p th:if="${nullValue} == null"><code>nullValue</code> is null</p>
+				</li>
+				<li>
+					<p>书写文本，用单引号<code>'...'</code>可以保证不会有问题</p>
+					<p>若要直接书写，只能包含以下字符： <code>A-Z, a-z, 0-9, [, ], ., -, _</code>，不能包含空格或逗号等其他符号</p>
+					<p th:text="ThisIsAStaticString0[].-_"></p>
+				</li>
+				<li>
+					<p>字符串拼接使用<code>+</code></p>
+					<p th:text="'The name of the user is ' + ${session.user.name}"></p>
+				</li>
+				<li>
+					<p>字符串替换语法<code>|</code>，可以与其表达式混用，无需使用<code>'...' + '...'</code>来拼接</p>
+					<p>字符串替换语法<code>|...|</code>内只识别<code>${...}</code>语法</p>
+					<p th:text="|Welcome to our application, ${session.user.name}!|"></p>
+				</li>
+			</ul>
+		</li>
+		<li>
+			<p>数学运算</p>
+			<ul>
+				<li>
+					<p>支持<code>+, -, *, /, %</code>运算，同样根据<code>}</code>书写的位置不同，调用的表达式引擎不同</p>
+					<p>/, %有对应的别名： <code>div</code>, <code>mod</code></p>
+					<p th:with="isEvent=(100 % 2 == 0)">Hello Mathematics <span th:text="${isEvent}"></span></p>
+					<p th:with="isEvent=(100 mod 2 != 0)">Hello Mathematics <span th:text="${isEvent}"></span></p>
+					<p th:with="isEvent=(1 + 1 == 2)">Hello Mathematics <span th:text="${isEvent}"></span></p>
+					<p th:with="isEvent=(1 - 2 != -1)">Hello Mathematics <span th:text="${isEvent}"></span></p>
+					<p th:with="isEvent=(1 * 3 == 3)">Hello Mathematics <span th:text="${isEvent}"></span></p>
+					<p th:with="isEvent=(4 / 1 != 4)">Hello Mathematics <span th:text="${isEvent}"></span></p>
+					<p th:with="isEvent=(4 div 1 == 4)">Hello Mathematics <span th:text="${isEvent}"></span></p>
+				</li>
+			</ul>
+		</li>
+		<li>
+			<p>比较运算</p>
+			<ul>
+				<li>
+					<p>支持<code>&gt;, &lt;, &gt;=, &lt;=, ==, !=</code>运算</p>
+					<p>每个运算符有对应的别名： 
+					<code>
+					gt(&gt;), lt(&lt;), ge(&gt;=), le(&lt;=), not(!), eq(==), neq/ne(!=)
+					</code>
+					</p>
+					<p th:if="4 gt 3"> 4 is greater than 3</p>
+					<p th:if="4 &gt; 3"> 4 is greater than 3</p>
+					<p th:if="2 lt 3"> 2 is less than 3</p>
+					<p th:if="2 &lt; 3"> 2 is less than 3</p>
+					<p th:if="4 ge 3"> 4 is greater than or equals to 3</p>
+					<p th:if="4 &gt;= 3"> 4 is greater than or equals to 3</p>
+					<p th:if="2 le 3"> 2 is less than or equals to 3</p>
+					<p th:if="2 &lt;= 3"> 2 is less than or equals to 3</p>
+					<p th:if="! ${falseValue}">Boolean is false</p>
+					<p th:if="not ${falseValue}">Boolean is false</p>
+					<p th:if="3 eq 3"> 3 is equals to 3</p>
+					<p th:if="3 == 3"> 3 is equals to 3</p>
+					<p th:if="4 neq 3"> 4 is not equals to 3</p>
+					<p th:if="4 ne 3"> 4 is not equals to 3</p>
+					<p th:if="4 != 3"> 4 is not equals to 3</p>
+				</li>
+				<li>
+					<p>条件表达式（三目运算符）</p>
+					<p>
+						<span>可以省略<code>:</code>后面的值</span>
+						<table>
+							<tr th:class="${isAdmin} ? 'odd' : 'even'"><td>Odd</td><td>Line</td></tr>
+							<tr th:class="! ${isAdmin} ? 'odd'"><td>Even</td><td>Line</td></tr>
+							<tr th:class="${isAdmin} ? 'odd'"><td>Odd</td><td>Line</td></tr>
+						</table>
+					</p>
+					<p>也可以省略<code>:</code>前面的值，即指定默认表达式为真时取表达式的值，并且可以嵌套使用</p>
+					<p>Age: <span th:text="${session.user.age}?: '(no age specified)'"></span>.</p>
+					<p>Age: <span th:text="${session.user.age != null} ? ${session.user.age} : '(no age specified)'"></span>.</p>
+					<p>Name: <span th:text="${session.user.firstName}?: (${isAdmin}? 'Admin' : #{default.username})"></span></p>
+				</li>
+			</ul>
+		</li>
+		<li>
+			<p>表达式预处理</p>
+			<ul>
+				<li>
+					<p>如下显示Message之前，Thymeleaf首先对表达式进行了预处理</p>
+					<p th:text="${__#{preprocess.msg('TestMessage')}__}"></p>
+					<p th:text="${@thymeleaf.notes.business.util.MessageUtil@translate('TestMessage')}"></p>
+				</li>
+			</ul>
+		</li>
+	</ol>
+	<h2>设置标签属性</h2>
+	<ol>
+		<li>
+			<p>（<b>不常用</b>）设置任意属性的值<code>th:attr</code></p>
+			<ul>
+				<li>
+					<p>从表单开始</p>
+					<p>
+						<form action="subscribe.html" method="post" th:attr="action=@{/subscribe}">
+							<fieldset>
+								<input type="text" name="email"/>
+								<input type="submit" value="Subscribe" th:attr="value=#{subscribe.submit}"/>
+							</fieldset>
+						</form>
+					</p>
+				</li>
+				<li>
+					<p>用<code>,</code>分隔设置多个属性值</p>
+					<p>
+						<img src="../../images/logo.png" th:attr="src=@{/images/logo.png},title=#{logo},alt=#{logo}" />
+					</p>
+				</li>
+			</ul>
+		</li>
+		<li>
+			<p>设置特定属性的值<code>th:*</code></p>
+			<ul>
+				<li>
+					<p>设置表单<code>action</code>和<code>method</code>属性</p>
+					<p>
+						<form action="subscribe.html" th:method="post" th:action="@{/subscribe}">
+							<fieldset>
+								<input type="text" name="email"/>
+								<input type="submit" value="Subscribe" th:value="#{subscribe.submit}"/>
+							</fieldset>
+						</form>
+					</p>
+					<p>设置链接的<code>href</code>属性</p>
+					<p><a href="product/list.html" th:href="@{/product/list}">Product List</a></p>
+				</li>
+				<li>
+					<p>Thymeleaf目前支持以下XHTML/HTML5属性</p>
+					<p>
+						<table>
+							<tr><td>th:codebase			</td><td>th:codetype	</td><td>th:cols		</td></tr>
+							<tr><td>th:colspan			</td><td>th:compact		</td><td>th:content		</td></tr>
+							<tr><td>th:contenteditable	</td><td>th:contextmenu	</td><td>th:data		</td></tr>
+							<tr><td>th:datetime			</td><td>th:dir			</td><td>th:draggable	</td></tr>
+							<tr><td>th:dropzone			</td><td>th:enctype		</td><td>th:for			</td></tr>
+							<tr><td>th:form				</td><td>th:formaction	</td><td>th:formenctype	</td></tr>
+							<tr><td>th:formmethod		</td><td>th:formtarget	</td><td>th:frame		</td></tr>
+							<tr><td>th:frameborder		</td><td>th:headers		</td><td>th:height		</td></tr>
+							<tr><td>th:high				</td><td>th:href		</td><td>th:hreflang	</td></tr>
+							<tr><td>th:hspace			</td><td>th:http-equiv	</td><td>th:icon		</td></tr>
+							<tr><td>th:id				</td><td>th:keytype		</td><td>th:kind		</td></tr>
+							<tr><td>th:label			</td><td>th:lang		</td><td>th:list		</td></tr>
+							<tr><td>th:longdesc			</td><td>th:low			</td><td>th:manifest	</td></tr>
+							<tr><td>th:marginheight		</td><td>th:marginwidth	</td><td>th:max			</td></tr>
+							<tr><td>th:maxlength		</td><td>th:media		</td><td>th:method		</td></tr>
+							<tr><td>th:min				</td><td>th:name		</td><td>th:optimum		</td></tr>
+							<tr><td>th:pattern			</td><td>th:placeholder	</td><td>th:poster		</td></tr>
+							<tr><td>th:preload			</td><td>th:radiogroup	</td><td>th:rel			</td></tr>
+							<tr><td>th:rev				</td><td>th:rows		</td><td>th:rowspan		</td></tr>
+							<tr><td>th:rules			</td><td>th:sandbox		</td><td>th:scheme		</td></tr>
+							<tr><td>th:scope			</td><td>th:scrolling	</td><td>th:size		</td></tr>
+							<tr><td>th:sizes			</td><td>th:span		</td><td>th:spellcheck	</td></tr>
+							<tr><td>th:src				</td><td>th:srclang		</td><td>th:standby		</td></tr>
+							<tr><td>th:start			</td><td>th:step		</td><td>th:style		</td></tr>
+							<tr><td>th:summary			</td><td>th:tabindex	</td><td>th:target		</td></tr>
+							<tr><td>th:title			</td><td>th:type		</td><td>th:usemap		</td></tr>
+							<tr><td>th:value			</td><td>th:valuetype	</td><td>th:vspace		</td></tr>
+							<tr><td>th:width			</td><td>th:wrap		</td><td>th:xmlbase		</td></tr>
+							<tr><td>th:xmllang			</td><td>th:xmlspace	</td><td>				</td></tr>
+						</table>
+					</p>
+				</li>
+				<li>
+					<p>一次设置多个属性的值（与<code>th:attr</code>不同）</p>
+					<p><img src="../../images/logo.png" th:attr="src=@{/images/logo.png},title=#{logo},alt=#{logo}" /></p>
+					<p><img src="../../images/logo.png" th:src="@{/images/logo.png}" th:title="#{logo}" th:alt="#{logo}" /></p>
+					<p><img src="../../images/logo.png" th:src="@{/images/logo.png}" th:alt-title="#{logo}" /></p>
+				</li>
+			</ul>
+		</li>
+		<li>
+			<p>修改属性值，在原值前后追加<code>th:attrappend</code></p>
+			<p><input type="button" value="Do it!" class="btn" th:attrappend="class=${' ' + cssStyle}" th:styleappend="'color:#f80;'" th:classappend="'flat'" /></p>
+			<p>Thymeleaf有两个属性专门用来修改class或style属性值： <code>th:classappend</code>、<code>th:styleappend</code></p>
+		</li>
+		<li>
+			<p>
+				有些属性的值是固定的，如<code>checked</code>、<code>disabled</code>、<code>readonly</code>、<code>selected</code>等，有时需要根据不同情况设置或不设置该属性。
+				只需要将该属性值设置为一个boolean值，如果该值为true，则该属性被自动设置为对应的固定值，如果为false，则不设置该属性。
+			</p>
+			<p>
+				<input type="checkbox" name="active" th:checked="${checkActive}" />
+				<input type="checkbox" name="inactive" th:checked="${checkInactive}" />
+			</p>
+			<p>Thymeleaf目前支持以下属性通过boolean值来确定属性设置与否</p>
+			<p>
+				<table>
+					<tr><td>th:async			</td><td>th:autofocus	</td><td>th:autoplay	</td></tr>
+					<tr><td>th:checked			</td><td>th:controls	</td><td>th:declare		</td></tr>
+					<tr><td>th:default			</td><td>th:defer		</td><td>th:disabled	</td></tr>
+					<tr><td>th:formnovalidate	</td><td>th:hidden		</td><td>th:ismap		</td></tr>
+					<tr><td>th:loop				</td><td>th:multiple	</td><td>th:novalidate	</td></tr>
+					<tr><td>th:nowrap			</td><td>th:open		</td><td>th:pubdate		</td></tr>
+					<tr><td>th:readonly			</td><td>th:required	</td><td>th:reversed	</td></tr>
+					<tr><td>th:scoped			</td><td>th:seamless	</td><td>th:selected	</td></tr>
+				</table>
+			</p>
+		</li>
+		<li>
+			<p>支持以HTML5的标准方式（<code>data-{prefix}-{name}</code>）添加的自定义属性的解析</p>
+			<p>
+				<table>
+					<tr>
+						<td data-th-text="${session.user.name}"></td>
+						<td data-th-text="${session.user.age}"></td>
+					</tr>
+				</table>
+			</p>
+		</li>
+	</ol>
+	<h2>迭代/循环（Iteration）</h2>
+	<ol>
+		<li>
+			<p>简单迭代<code>th:each</code></p>
+			<p>
+				<table>
+					<tr>
+						<th>NAME</th><th>AGE</th><th>NATION</th>
+					</tr>
+					<tr th:each="u : ${users}">
+						<td th:text="${u.name}"></td><td th:text="${u.age}"></td><td th:text="${u.nationality}"></td>
+					</tr>
+				</table>
+			</p>
+			<p>
+				<table>
+					<tr th:each="prop : ${userMap}">
+						<th th:text="${prop.key}"></th><td th:text="${prop.value}"></td>
+					</tr>
+				</table>
+			</p>
+			<p>可以迭代的数据类型，除了<code>array</code>、<code>java.util.List</code>以外，还有以下几类数据也可以进行迭代：</p>
+			<ul>
+				<li>任何实现了<code>java.util.Iterable</code>的对象</li>
+				<li>任何实现了<code>java.util.Map</code>的对象，此时的迭代变量就是<code>java.util.Map.Entry</code></li>
+				<li>Any other object will be treated as if it were a single-valued list containing the object itself.</li>
+			</ul>
+		</li>
+		<li>
+			<p>迭代状态变量（如未指定，则变量名为迭代变量加<code>Stat</code>后缀）</p>
+			<p>
+				<table>
+					<tr>
+						<th>NAME</th><th>AGE</th><th>NATION</th>
+						<th>index</th>
+						<th>count</th>
+						<th>size</th>
+						<th>current</th>
+						<th>even/odd by index</th>
+						<th>first</th>
+						<th>last</th>
+					</tr>
+					<tr th:each="u,iterStat : ${users}" th:class="${iterStat.odd} ? 'odd'">
+						<td th:text="${u.name}"></td><td th:text="${u.age}"></td><td th:text="${u.nationality}"></td>
+						<td th:text="${iterStat.index}"></td>
+						<td th:text="${iterStat.count}"></td>
+						<td th:text="${iterStat.size}"></td>
+						<td th:text="${iterStat.current.name}"></td>
+						<td th:text="${iterStat.even} ? 'even' : 'odd'"></td>
+						<td th:text="${iterStat.first}"></td>
+						<td th:text="${iterStat.last}"></td>
+					</tr>
+				</table>
+			</p>
+		</li>
+		<li>
+			<p>当前Context中的变量</p>
+			<p>
+				<table>
+					<tr><th>Key</th><th>Value</th></tr>
+					<tr th:each="v : ${#ctx.variables}" th:class="${vStat.odd} ? 'odd'">
+						<td th:text="${v.key}"></td><td th:text="${v.value}" style="word-break:break-all;"></td>
+					</tr>
+				</table>
+			</p>
+		</li>
+	</ol>
+	<h2>条件语句</h2>
+	<ol>
+		<li>
+			<p><code>th:if</code>/<code>th:unless</code>语句</p>
+			<p>
+				<table>
+					<tr>
+						<th>NAME</th><th>AGE</th><th>OLD-MAN</th>
+					</tr>
+					<tr th:each="u : ${users}" th:class="${uStat.odd} ? 'odd'">
+						<td th:text="${u.name}"></td>
+						<td th:text="${u.age}"></td>
+						<td>
+							<span th:if="${u.age} gt 24">Old Man</span>
+							<span th:unless="${u.age} gt 24">Young Man</span>
+						</td>
+					</tr>
+				</table>
+			</p>
+			<p><code>th:if</code>语句的判断条件可以不只是boolean类型的值</p>
+			<p>如果判断对象不为<code>null</code></p>
+			<ul>
+				<li>
+					boolean类型的<code>true</code>认为是<code>true</code>
+					<span th:if="${falseValue}">FALSE</span>
+				</li>
+				<li>
+					非零的数字认为是<code>true</code>
+					<span th:if="0">FALSE</span>
+				</li>
+				<li>
+					非零的字符认为是<code>true</code>
+					<span th:if="'0'">FALSE</span>
+				</li>
+				<li>
+					字符串（除了<code>false</code>、<code>off</code>、<code>no</code>）认为是<code>true</code>
+					<span th:if="'false'">FALSE</span>
+					<span th:if="'off'">FALSE</span>
+					<span th:if="'no'">FALSE</span>
+				</li>
+				<li>除boolean、数字、字符、字符串以外的其他类型</li>
+			</ul>
+			<p>
+				如果判断条件为<code>null</code>，则为<code>false</code>
+				<span th:if="${nullValue}">FALSE</span>
+			</p>
+		</li>
+		<li>
+			<p><code>th:switch</code>语句，自带<code>break</code>，使用<code>th:case="*"</code>表示<code>default</code>的情况</p>
+			<p>
+				<table>
+					<tr>
+						<th>NAME</th><th>AGE</th><th>LEVEL</th>
+					</tr>
+					<tr th:each="u : ${users}" th:class="${uStat.odd} ? 'odd'">
+						<td th:text="${u.name}"></td><td th:text="${u.age}"></td>
+						<td>
+							<span th:switch="${u.age}">
+								<b th:case="23">First Level</b>
+								<b th:case="24">Second Level</b>
+								<b th:case="25">Third Level</b>
+								<b th:case="*">Fourth Level</b>
+							</span>
+						</td>
+					</tr>
+				</table>
+			</p>
+		</li>
+	</ol>
+	<h2>模板布局</h2>
+	<ol>
+		<li>
+			<p>包含其他模板：<code>th:fragment</code>定义模板部件，<code>th:include</code>/<code>th:replace</code>包含模板</p>
+			<ul>
+				<li>
+					<p><code>th:include</code>是将指定模板部件的所有子元素包含到当前元素内</p>
+					<p><div th:include="header::logo"></div></p>
+				</li>
+				<li>
+					<p><code>th:replace</code>是使用指定的模板部件替换当前元素</p>
+					<p><div th:replace="header::logo"></div></p>
+				</li>
+			</ul>
+			<p>引用模板部件的语法有以下三种</p>
+			<ul>
+				<!-- 完整内容参考官方文档usingthymeleaf.pdf的附录C: DOM Selector syntax -->
+				<li><code>templatename::domselector</code>或<code>templatename::[domselector]</code>，这里的domselector同时支持XPath和CSS选择器语法</li>
+				<li><code>templatename</code>包含指定模板的全部内容</li>
+				<li><code>::domselector</code>或<code>this::domselector</code>包含当前模板内的指定部件</li>
+			</ul>
+			<p><code>templatename</code>和<code>domselector</code>同时支持表达式，即可以动态包含不同的模板部件</p>
+			<p><div th:include="header :: not ${isAdmin} ? logo : logoText"></div></p>
+			<p>模板部件中可以包含任何的<code>th:*</code>属性，可以引用目标模板Context中的所有数据</p>
+		</li>
+		<li>
+			<p>可以不使用<code>th:fragment</code>定义模板部件，直接使用DOM选择器（非常类似于CSS选择器）来引用模板部件</p>
+			<p><div th:include="header :: #logo"></div></p>
+		</li>
+		<li>
+			<p>模板部件可以传递参数</p>
+			<div th:fragment="frag (onevar, twovar)">
+		  		<p th:text="|onevar = ${onevar}, twovar = ${twovar}|">Fragment with parameters</p>
+		  	</div>
+			<p><div th:include="::frag('Thyme', 'Leaf')"></div></p>
+			<p><div th:include="::frag(onevar='Thyme', twovar='Leaf')"></div></p>
+			<p><div th:include="::frag(twovar='Leaf', onevar='Thyme')"></div></p>
+			<p>模板部件也可以不指定参数列表，直接在引用时传参，但必须显式的指定参数名，这相当于在包含模板部件时，同时执行<code>th:with</code>定义局部变量</p>
+			<div th:fragment="frag-no-args">
+		  		<p th:text="|onevar = ${onevar}, twovar = ${twovar}|">Fragment without parameters</p>
+		  	</div>
+		  	<p><div th:include="::frag-no-args(onevar='Thyme', twovar='Leaf')"></div></p>
+		  	<p>模板部件内可以使用断言<code>th:assert</code>来确保该部件被正确引用</p>
+		  	<p><div th:include="header::frag-with-assert(onevar='Thyme', twovar='Leaf')"></div></p>
+		</li>
+		<li>
+			<p>移除模板内容<code>th:remove</code>，添加<code>th:remove</code>属性的元素在经过模板引擎解析之后会被移除掉</p>
+			<p>
+				<table>
+					<tr><th>NAME</th><th>AGE</th></tr>
+					<tr th:each="u : ${users}" th:class="${uStat.odd} ? 'odd'">
+						<td th:text="${u.name}"></td><td th:text="${u.age}"></td>
+					</tr>
+					<tr th:remove="all"><td>NAME1</td><td>25</td></tr>
+					<tr th:remove="all" class="odd"><td>NAME2</td><td>25</td></tr>
+					<tr th:remove="all"><td>NAME3</td><td>25</td></tr>
+					<tr th:remove="all" class="odd"><td>NAME4</td><td>25</td></tr>
+				</table>
+			</p>
+			<p><code>th：remove</code>的取值有以下几种</p>
+			<ul>
+				<li><code>all</code>移除当前元素及其所有子元素</li>
+				<li><code>body</code>不移除当前元素，仅移除其所有子元素</li>
+				<li><code>tag</code>移除当前元素，但不移除其子元素</li>
+				<li><code>all-but-first</code>移除当前元素下除了第一个以外的所有子元素</li>
+				<li><code>none</code>不做任何操作，可以用于动态控制元素的移除与否</li>
+			</ul>
+			<p><code>all-but-first</code>的值可以让我们减少<code>th:remove="all"</code>使用次数，直接在上一级元素上加上<code>th:remove="all-but-first"</code>即可</p>
+			<p>
+				<table>
+					<thead>
+						<tr><th>NAME</th><th>AGE</th></tr>
+					</thead>
+					<tbody th:remove="all-but-first">
+						<tr th:each="u : ${users}" th:class="${uStat.odd} ? 'odd'">
+							<td th:text="${u.name}"></td><td th:text="${u.age}"></td>
+						</tr>
+						<tr><td>NAME1</td><td>25</td></tr>
+						<tr class="odd"><td>NAME2</td><td>25</td></tr>
+						<tr><td>NAME3</td><td>25</td></tr>
+						<tr class="odd"><td>NAME4</td><td>25</td></tr>
+					</tbody>
+				</table>
+			</p>
+			<p><code>th:remove</code>取值也可以使用表达式，只要该表达式返回特定的字符串即可（<code>all, body, tag, all-but-first, none</code>），而且<code>null</code>等同于<code>none</code></p>
+			<p><a href="/something" th:remove="${trueValue}? tag : none">Link text not to be removed</a></p>
+			<p><a href="/something" th:remove="${trueValue}? tag">Link text not to be removed</a></p>
+		</li>
+	</ol>
+	<h2>局部变量</h2>
+	<ol>
+		<li>在使用<code>th:each</code>迭代列表时，迭代变量和迭代状态就是两个局部变量，它只在循环体内有效</li>
+		<li>
+			<p>Thymeleaf使用<code>th:with</code>来自定义局部变量</p>
+			<p th:with="firstUser=${users[0]}"><span th:text="${firstUser.name}"></span></p>
+		</li>
+		<li>
+			<p><code>th:with</code>可以一次定义多个局部变量</p>
+			<p th:with="firstUser=${users[0]},secondUser=${users[1]}"><span th:text="${firstUser.name}"></span>, <span th:text="${secondUser.name}"></span></p>
+		</li>
+		<li>
+			<p><code>th:with</code>可以复用前面定义的局部变量</p>
+			<p th:with="index=2,thirdUser=${users[index]}"><span th:text="${thirdUser.name}"></span></p>
+		</li>
+		<li>
+			<p><code>th:with</code>执行优先级高于<code>th:text</code>，所以以下两种写法效果相同</p>
+			<p th:with="df='yyyy-MM-dd HH:mm:ss.SSSZ'">Today is <span th:text="${#calendars.format(today, df)}"></span></p>
+			<p>Today is <span th:with="df='yyyy-MM-dd HH:mm:ss.SSSZ'" th:text="${#calendars.format(today, df)}"></span></p>
+		</li>
+	</ol>
+	<h2>属性优先级</h2>
+	<ol>
+		<li>同一个标签上写了多个<code>th:*</code>属性时，模板引擎会按以下顺序来解析这些属性（数字越小，优先级越高），这与属性的书写顺序没有关系</li>
+		<li>
+			<p>标签属性执行优先级：</p>
+			<table>
+				<tr><th>Order	</th><th>Feature						</th><th>Attributes											</th></tr>
+				<tr><td>1		</td><td>Fragment inclusion				</td><td><code>th:include, th:replace</code>				</td></tr>
+				<tr><td>2		</td><td>Fragment iteration				</td><td><code>th:each</code>								</td></tr>
+				<tr><td>3		</td><td>Conditional evaluation			</td><td><code>th:if, th:unless, th:switch, th:case</code>	</td></tr>
+				<tr><td>4		</td><td>Local variable definition		</td><td><code>th:object, th:with</code>					</td></tr>
+				<tr><td>5		</td><td>General attribute modification	</td><td><code>th:attr, th:attrprepend, th:attrappend</code></td></tr>
+				<tr><td>6		</td><td>Specific attribute modification</td><td><code>th:value, th:href, th:src, ...</code>		</td></tr>
+				<tr><td>7		</td><td>Text (tag body modification)	</td><td><code>th:text, th:utext</code>						</td></tr>
+				<tr><td>8		</td><td>Fragment specification			</td><td><code>th:fragment</code>							</td></tr>
+				<tr><td>9		</td><td>Fragment removal				</td><td><code>th:remove</code>								</td></tr>
+			</table>
+		</li>
+	</ol>
+	<h2>注释和块</h2>
+	<ol>
+		<li>普通的HTML/XML注释，这部分注释在模板解析前后都会被保留： <code>&lt;!-- ... --&gt;</code><!-- This will be reserved --></li>
+		<li>
+			<p>能够被Thymeleaf引擎识别的注释，这部分注释在模板解析过后会被移除： </p>
+			<p><code>&lt;!--/* This code will be removed at thymeleaf parsing time! */--&gt;</code></p>
+			<!--/* This code will be removed at thymeleaf parsing time! */-->
+			<p>所有<code>&lt;!--/*</code>和<code>*/--&gt;</code>之间的内容都会在解析后被移除</p>
+			<p>
+				<!--/*-->
+				<div>you can see me only before thymeleaf processes me!</div>
+				<!--*/-->
+				<table>
+					<tr><th>NAME</th><th>AGE</th></tr>
+					<tr th:each="u : ${users}" th:class="${uStat.odd} ? 'odd'">
+						<td th:text="${u.name}"></td><td th:text="${u.age}"></td>
+					</tr>
+					<!--/*-->
+					<tr><td>NAME1</td><td>25</td></tr>
+					<tr class="odd"><td>NAME2</td><td>25</td></tr>
+					<tr><td>NAME3</td><td>25</td></tr>
+					<tr class="odd"><td>NAME4</td><td>25</td></tr>
+					<!--*/-->
+				</table>
+			</p>
+		</li>
+		<li>
+			<p>只能被Thymeleaf识别的注释：<code>&lt;!--/*/ ... /*/--&gt;</code></p>
+			<p>当解析模板时，<code>&lt;!--/*/</code>和<code>/*/--&gt;</code>会被移除，但两者之间的内容会被保留，并正常解析其中的表达式</p>
+			<p><!--/*/<span th:text="${userMap['name']}"></span>/*/--></p>
+		</li>
+		<li>
+			<p><code>th:block</code>标签，Thymeleaf中唯一个不是属性的处理器，这是一个标签<code>&lt;th:block&gt;...&lt;/th:block&gt;</code></p>
+			<p><code>th:block</code>上可以添加任何Thymeleaf的属性，并正常执行，待模板解析完成后，<code>th:block</code>会被移除</p>
+			<p>这可以用于循环时，循环体不止一个<code>&lt;tr&gt;</code>的情况</p>
+			<p>
+				<table>
+					<tr><th>NAME</th><th>AGE</th></tr>
+					<th:block th:each="u : ${users}">
+					<tr class="odd"><td th:text="${u.name}"></td><td th:text="${u.age}"></td></tr>
+					<tr><td colspan="2" th:text="'Name is ' + ${u.name} + ', ' + ${u.age} + ' years old.'"></td></tr>
+					</th:block>
+				</table>
+			</p>
+			<p><code>th:block</code>与Thymeleaf的原生注释结合使用，其作用尤其明显</p>
+			<p>
+				<table>
+					<tr><th>NAME</th><th>AGE</th></tr>
+					<!--/*/<th:block th:each="u : ${users}">/*/-->
+					<tr class="odd"><td th:text="${u.name}"></td><td th:text="${u.age}"></td></tr>
+					<tr><td colspan="2" th:text="'Name is ' + ${u.name} + ', ' + ${u.age} + ' years old.'"></td></tr>
+					<!--/*/</th:block>/*/-->
+				</table>
+			</p>
+		</li>
+	</ol>
+	<h2>文本内联</h2>
+	<ol>
+		<li>
+			<p><code>th:inline</code>和<code>[[ ... ]]</code></p>
+			<p th:inline="text">Hello, [[${session.user.name}]] !</p>
+			<p><code>th:inline</code>的聚会有： <code>text, javascript, dart, none</code></p>
+			<p>不需要在直接包含内联文本的标签上书写<code>th:inline</code>属性，只要它的任意一个父元素标注了该属性即可</p>
+		</li>
+		<li>
+			<p>脚本内联，目前支持<code>javascript(th:inline="javascript")</code>和<code>dart(th:inline="dart")</code></p>
+			<p>简单的脚本内联，<code>/* ... */</code>不会被改变，正常输出，<code>/*[[...]]*/</code>表达式之后的文本会在解析后被移除，同时不影响静态页面的展示</p>
+			<script th:inline="javascript">
+			/*<![CDATA[*/
+				var username = /*[[${session.user.name}]]*/ 'Sebastian';
+			/*]]>*/
+			</script>
+			<p>当然表达式也可以直接写作<code>[[ ... ]]</code>，但这样的代码在静态页面展示时会出错</p>
+			<p>Thymeleaf会按照<code>javascript/dart</code>语法解析以下几类变量</p>
+			<ul>
+				<li>Strings</li>
+				<li>Numbers</li>
+				<li>Booleans</li>
+				<li>Arrays</li>
+				<li>Collections</li>
+				<li>Maps</li>
+				<li>Beans(必须有get和set方法)</li>
+			</ul>
+			<script th:inline="javascript">
+			/*<![CDATA[*/
+				var cssStyle = /*[[${cssStyle}]]*/ 'error';
+				var orderId = /*[[${orderId}]]*/ 4;
+				var trueValue = /*[[${trueValue}]]*/ false;
+				var users = /*[[${users}]]*/ [];
+				var userMap = /*[[${userMap}]]*/ {};
+				var user = /*[[${session.user}]]*/ {};
+			/*]]>*/
+			</script>
+			<p>添加代码，<code>/*[+ ... +]*/</code>块内的代码会正常输出，但做为静态页面展示时并不起作用</p>
+			<script th:inline="javascript">
+				var x = 23;
+				/*[+
+				var msg = 'This is a working application';
+				+]*/
+			</script>
+			<p>移除代码，<code>/*[- */ ... /* -]*/</code>块内的代码模板解析后会被移除，但做为静态页面展示时可以正常执行</p>
+			<script th:inline="javascript">
+				var x = 23;
+				/*[- */
+				var msg = 'This is a non-working template';
+				/* -]*/
+			</script>
+		</li>
+	</ol>
+	<h2>文档验证和DOCTYPE</h2>
+	<ol>
+		<li>
+			<p>对于标准的XHTML文档，一般DOCTYPE按如下定义</p>
+			<p><code>&lt;!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"</code></p>
+			<p><code>"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"&gt;</code></p>
+			<p>但是为了使用<code>th:*</code>的属性和标签，Thymeleaf将DOCTYPE定义如下（dtd文件在thymeleaf的jar包中可以找到）</p>
+			<p><code>&lt;!DOCTYPE html SYSTEM "http://www.thymeleaf.org/dtd/xhtml1-strict-thymeleaf-4.dtd"&gt;</code></p>
+		</li>
+		<li>
+			<p>Thymeleaf支持如下DOCTYPE</p>
+			<ul>
+				<li><code>&lt;!DOCTYPE html SYSTEM "http://www.thymeleaf.org/dtd/xhtml1-strict-thymeleaf-4.dtd"&gt;</code></li>
+				<li><code>&lt;!DOCTYPE html SYSTEM "http://www.thymeleaf.org/dtd/xhtml1-transitional-thymeleaf-4.dtd"&gt;</code></li>
+				<li><code>&lt;!DOCTYPE html SYSTEM "http://www.thymeleaf.org/dtd/xhtml1-frameset-thymeleaf-4.dtd"&gt;</code></li>
+				<li><code>&lt;!DOCTYPE html SYSTEM "http://www.thymeleaf.org/dtd/xhtml11-thymeleaf-4.dtd"&gt;</code></li>
+			</ul>
+		</li>
+		<li>
+			<p>为了使用IDE中编辑器能够验证通过，还需要在<code>&lt;html&gt;</code>标签上添加<code>th</code>的命名空间</p>
+			<p><code>&lt;html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"&gt;</code></p>
+		</li>
+		<li>
+			<p>以上Thymeleaf文档中指定的DOCTYPE和<code>th</code>的命名空间，在经过模板引擎解析之后都会被自动转换为标准XHTML/HTML的DOCTYPE和命名空间定义</p>
+			<p><code>&lt;!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"</code></p>
+			<p><code>"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"&gt;</code></p>
+			<p><code>&lt;html xmlns="http://www.w3.org/1999/xhtml"&gt; ... &lt;/html&gt;</code></p>
+		</li>
+	</ol>
+	<h2>模板解析器</h2>
+	<ol>
+		<li>
+			<p>Thymeleaf常用的模板解析器有如下几种</p>
+			<ul>
+				<li><code>org.thymeleaf.templateresolver.ClassLoaderTemplateResolver</code></li>
+				<li><code>org.thymeleaf.templateresolver.FileTemplateResolver</code></li>
+				<li><code>org.thymeleaf.templateresolver.UrlTemplateResolver</code></li>
+				<li><code>org.thymeleaf.templateresolver.ServletContextTemplateResolver</code></li>
+			</ul>
+		</li>
+		<li>
+			<p>模板解析器有如下参数可以配置</p>
+			<p>
+				<code>
+					// 模板路径前缀<br/>
+					templateResolver.setPrefix("/WEB-INF/templates/");<br/>
+					// 模板文件后缀名<br/>
+					templateResolver.setSuffix(".html");<br/>
+					// 模板别名<br/>
+					templateResolver.addTemplateAlias("adminHome","profiles/admin/home");<br/>
+					templateResolver.setTemplateAliases(aliasesMap);<br/>
+					// 模板编码<br/>
+					templateResolver.setEncoding("UTF-8");<br/>
+					// Default is TemplateMode.XHTML<br/>
+					templateResolver.setTemplateMode("HTML5");<br/>
+					templateResolver.getXhtmlTemplateModePatternSpec().addPattern("*.xhtml");<br/>
+					// Default is true<br/>
+					templateResolver.setCacheable(false);<br/>
+					templateResolver.getCacheablePatternSpec().addPattern("/users/*");<br/>
+					// Default is no TTL (only LRU would remove entries)<br/>
+					templateResolver.setCacheTTLMs(60000L);
+				</code>
+			</p>
+		</li>
+		<li>
+			<p>设置多个模板解析器的解析顺序及解析模式的指定</p>
+			<p>
+				<code>
+					ClassLoaderTemplateResolver classLoaderTemplateResolver = new ClassLoaderTemplateResolver();<br/>
+					// 设置模板解析器的解析顺序<br/>
+					classLoaderTemplateResolver.setOrder(Integer.valueOf(1));<br/>
+					// This classloader will not be even asked for any templates not matching these patterns<br/>
+					classLoaderTemplateResolver.getResolvablePatternSpec().addPattern("/layout/*.html");<br/>
+					classLoaderTemplateResolver.getResolvablePatternSpec().addPattern("/menu/*.html");<br/>
+					ServletContextTemplateResolver servletContextTemplateResolver = new<br/>
+					ServletContextTemplateResolver();<br/>
+					// 设置模板解析器的解析顺序<br/>
+					servletContextTemplateResolver.setOrder(Integer.valueOf(2));
+				</code>
+			</p>
+		</li>
+		<li>
+			<p>Message解析器，默认实现<code>org.thymeleaf.messageresolver.StandardMessageResolver</code></p>
+			<p>也可通过实现<code>org.thymeleaf.messageresolver.IMessageResolver</code>接口来自定义解析器</p>
+			<p>
+				<code>
+					// 设置Message解析器<br/>
+					templateEngine.setMessageResolver(messageResolver);<br/>
+					// 添加Message解析器，多个Message解析器会被依次调用直到成功解析为止<br/>
+					templateEngine.addMessageResolver(messageResolver);
+				</code>
+			</p>
+		</li>
+		<li>
+			<p>Thymeleaf会记录三个级别的日志: <code>TRACE, DEBUG, INFO</code></p>
+			<p>模板引擎支持以下三类日志的配置</p>
+			<ul>
+				<li><code>org.thymeleaf.TemplateEngine.CONFIG</code>在初始化时输出详细的配置信息</li>
+				<li><code>org.thymeleaf.TemplateEngine.TIMER</code>输出解析每个模板所花费的时间，可用于性能调优</li>
+				<li>
+					<p><code>org.thymeleaf.TemplateEngine.cache</code>缓存日志，默认可配置的有以下几项</p>
+					<ul>
+						<li><code>org.thymeleaf.TemplateEngine.cache.TEMPLATE_CACHE</code></li>
+						<li><code>org.thymeleaf.TemplateEngine.cache.FRAGMENT_CACHE</code></li>
+						<li><code>org.thymeleaf.TemplateEngine.cache.MESSAGE_CACHE</code></li>
+						<li><code>org.thymeleaf.TemplateEngine.cache.EXPRESSION_CACHE</code></li>
+					</ul>
+				</li>
+			</ul>
+			<p>
+				如下是使用log4j的一个配置示例：<br/>
+				<code>
+					log4j.logger.org.thymeleaf=DEBUG<br/>
+					log4j.logger.org.thymeleaf.TemplateEngine.CONFIG=TRACE<br/>
+					log4j.logger.org.thymeleaf.TemplateEngine.TIMER=TRACE<br/>
+					log4j.logger.org.thymeleaf.TemplateEngine.cache.TEMPLATE_CACHE=TRACE
+				</code>
+			</p>
+		</li>
+	</ol>
+	<h2>模板缓存</h2>
+	<ol>
+		<li>
+			<p>缓存的优点</p>
+			<ul>
+				<li>磁盘IO通常比内存慢很多，会成为性能瓶颈</li>
+				<li>从内存中直接复制一个DOM树比从磁盘上读取、解析并重新创建一个新DOM树要快</li>
+				<li>Web应用通常模板不是很多</li>
+				<li>模板文件通常都不大，且应用一启动就不需要再修改了</li>
+			</ul>
+		</li>
+		<li>
+			<p>开关缓存</p>
+			<p>
+				<code>
+					// Default is true<br/>
+					templateResolver.setCacheable(false);<br/>
+					templateResolver.getCacheablePatternSpec().addPattern("/users/*");
+				</code>
+			</p>
+		</li>
+		<li>
+			<p>配置缓存</p>
+			<p>
+				<code>
+					// Default is 50<br/>
+					StandardCacheManager cacheManager = new StandardCacheManager();<br/>
+					cacheManager.setTemplateCacheMaxSize(100);<br/>
+					...<br/>
+					templateEngine.setCacheManager(cacheManager);
+				</code>
+			</p>
+		</li>
+		<li>
+			<p>移除缓存</p>
+			<p>
+				<code>
+					// Clear the cache completely<br/>
+					templateEngine.clearTemplateCache();<br/>
+					// Clear a specific template from the cache<br/>
+					templateEngine.clearTemplateCacheFor("/users/userList");
+				</code>
+			</p>
+		</li>
+	</ol>
+</body>
+</html>
+
