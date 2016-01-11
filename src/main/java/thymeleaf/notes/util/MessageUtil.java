@@ -1,4 +1,4 @@
-package thymeleaf.notes.business.util;
+package thymeleaf.notes.util;
 
 /**
  * Message Utility

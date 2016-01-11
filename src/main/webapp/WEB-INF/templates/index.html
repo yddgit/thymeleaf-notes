@@ -258,7 +258,7 @@
 				<li>
 					<p>如下显示Message之前，Thymeleaf首先对表达式进行了预处理</p>
 					<p th:text="${__#{preprocess.msg('TestMessage')}__}"></p>
-					<p th:text="${@thymeleaf.notes.business.util.MessageUtil@translate('TestMessage')}"></p>
+					<p th:text="${@thymeleaf.notes.util.MessageUtil@translate('TestMessage')}"></p>
 				</li>
 			</ul>
 		</li>

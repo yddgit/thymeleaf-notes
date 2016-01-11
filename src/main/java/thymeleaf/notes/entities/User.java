@@ -1,4 +1,4 @@
-package thymeleaf.notes.business.entities;
+package thymeleaf.notes.entities;
 
 /**
  * User
