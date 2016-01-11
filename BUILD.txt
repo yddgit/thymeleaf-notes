@@ -17,10 +17,14 @@
  Run in a jetty server:
  
      mvn jetty:run
-     
+
+ Stop the jetty server:
+
+     mvn jetty:stop
+
  Once started, the application should be available at:
  
-     http://localhost:8080/thymeleaf-notes
+     http://localhost:8080/thymeleaf-notes/index
 
 
 
