@@ -632,6 +632,19 @@
 			<p th:with="df='yyyy-MM-dd HH:mm:ss.SSSZ'">Today is <span th:text="${#calendars.format(today, df)}"></span></p>
 			<p>Today is <span th:with="df='yyyy-MM-dd HH:mm:ss.SSSZ'" th:text="${#calendars.format(today, df)}"></span></p>
 		</li>
+		<li>
+			<p>使用<code>th:with</code>定义循环变量的一种方式</p>
+			<p>
+				<table th:with="actualCount=${new java.util.concurrent.atomic.AtomicInteger(0)}">
+					<tr th:each="i : ${#numbers.sequence(1,6)}" th:if="${i%2 == 0}">
+						<th th:text="${i}"></th>
+						<td th:text="${iStat.index}"></td>
+						<td th:text="${iStat.count}"></td>
+						<td th:text="${actualCount.incrementAndGet()}"></td>
+					</tr>
+				</table>
+			</p>
+		</li>
 	</ol>
 	<h2>属性优先级</h2>
 	<ol>
